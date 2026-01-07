@@ -1,57 +1,37 @@
+import java.util.ArrayList;
+
 public class Sale {
-
     private int saleId;
-    private String customerName;
-    private double totalAmount;
     private String date;
+    private Customer customer;
+    private ArrayList<Product> items;
+    private double totalAmount;
 
-    public Sale(int saleId, String customerName, double totalAmount, String date) {
+    public Sale(int saleId, String date, Customer customer) {
         this.saleId = saleId;
-        this.customerName = customerName;
-        this.totalAmount = totalAmount;
         this.date = date;
+        this.customer = customer;
+        this.items = new ArrayList<>();
+        this.totalAmount = 0;
     }
 
-    public Sale() {
-        this.saleId = 0;
-        this.customerName = "Unknown";
-        this.totalAmount = 0.0;
-        this.date = "Unknown";
+    public void addProduct(Product product) {
+        if (product.isInStock()) {
+            items.add(product);
+            totalAmount += product.getPrice();
+            product.setStockQuantity(product.getStockQuantity() - 1);
+        }
     }
 
-    public int getSaleId() {
-        return saleId;
-    }
-
-    public void setSaleId(int saleId) {
-        this.saleId = saleId;
-    }
-
-    public String getCustomerName() {
-        return customerName;
-    }
-
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
-
-    public double getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void addItem(double price) {
-        totalAmount += price;
-    }
-
-    public double calculateTotal() {
-        return totalAmount;
-    }
+    public double getTotalAmount() { return totalAmount; }
 
     @Override
     public String toString() {
-        return "Sale{id=" + saleId +
-                ", customer='" + customerName + '\'' +
-                ", total=" + totalAmount +
-                ", date='" + date + '\'' + '}';
+        String result = "Sale ID: " + saleId + " | Date: " + date + " | Customer: " + customer.getName() + "\nItems:\n";
+        for (Product p : items) {
+            result += " - " + p.getName() + ": " + p.getPrice() + "\n";
+        }
+        result += "Total: " + totalAmount;
+        return result;
     }
 }

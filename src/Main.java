@@ -1,40 +1,50 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        ArrayList<Product> inventory = new ArrayList<>();
+        ArrayList<Customer> customers = new ArrayList<>();
 
-        System.out.println("=== Grocery Store Management System ===\n");
+        inventory.add(new FoodProduct(1, "Milk", 500, 10, "2026-01-01"));
+        inventory.add(new NonFoodProduct(2, "Soap", 300, 20, "Health"));
+        customers.add(new Customer(101, "Ali", 0));
 
-        Product p1 = new FoodProduct(1, "Milk", 500, 10, "10.02.2026");
-        Product p2 = new NonFoodProduct(2, "Bread", 300, 0, "Bakery");
-        Product p3 = new Product();
+        boolean running = true;
+        while (running) {
+            System.out.println("\n1. Add Food\n2. Add Non-Food\n3. View All\n4. Show Specifics\n5. Process Sale\n0. Exit");
+            int choice = sc.nextInt();
+            sc.nextLine();
 
-        Customer c1 = new Customer(101, "Ali", "Regular", 8000);
-        Customer c2 = new Customer(102, "Dana", "VIP", 15000);
-
-        Sale s1 = new Sale(1001, "Ali", 0, "2025-12-24");
-
-        System.out.println("--- PRODUCTS ---");
-        System.out.println(p1);
-        System.out.println(p2);
-        System.out.println(p3);
-
-        System.out.println("\n--- CUSTOMERS ---");
-        System.out.println(c1);
-        System.out.println(c2);
-
-        System.out.println("\n--- SALE ---");
-        s1.addItem(p1.getPrice());
-        s1.addItem(300);
-        System.out.println(s1);
-
-        System.out.println("\n--- METHODS TEST ---");
-        System.out.println("Milk in stock: " + p1.isInStock());
-        p2.restock(20);
-        System.out.println("Bread after restock: " + p2);
-
-        c1.addPurchase(s1.calculateTotal());
-        System.out.println("Ali total purchases: " + c1.getTotalPurchases());
-        System.out.println("Ali VIP: " + c1.isVIP());
-
-        System.out.println("\n=== Program Complete ===");
+            switch (choice) {
+                case 1:
+                    inventory.add(new FoodProduct(sc.nextInt(), sc.next(), sc.nextDouble(), sc.nextInt(), sc.next()));
+                    break;
+                case 2:
+                    inventory.add(new NonFoodProduct(sc.nextInt(), sc.next(), sc.nextDouble(), sc.nextInt(), sc.next()));
+                    break;
+                case 3:
+                    for (Product p : inventory) System.out.println(p);
+                    break;
+                case 4:
+                    for (Product p : inventory) {
+                        if (p instanceof FoodProduct) System.out.println(p.getName() + " expires: " + ((FoodProduct)p).getExpirationDate());
+                        if (p instanceof NonFoodProduct) System.out.println(p.getName() + " cat: " + ((NonFoodProduct)p).getCategory());
+                    }
+                    break;
+                case 5:
+                    Customer c = customers.getFirst();
+                    Sale s = new Sale(1, "2024-05-20", c);
+                    s.addProduct(inventory.getFirst());
+                    c.addPurchase(s.getTotalAmount());
+                    System.out.println(s);
+                    break;
+                case 0:
+                    running = false;
+                    break;
+            }
+        }
+        sc.close();
     }
 }
