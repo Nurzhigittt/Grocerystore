@@ -1,5 +1,6 @@
 package menu;
 
+import exception.InvalidInputException;
 import model.*;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -37,40 +38,50 @@ public class StoreMenu implements Menu {
         boolean running = true;
 
         while (running) {
-            displayMenu();
+           displayMenu();
+
             try {
-                System.out.print("Choose option: ");
                 int choice = sc.nextInt();
                 sc.nextLine();
+
+                if (choice < 0 || choice > 5) {
+                    throw new InvalidInputException("Invalid menu choice");
+                }
 
                 switch (choice) {
                     case 1:
                         addFoodProduct();
                         break;
+
                     case 2:
                         addNonFoodProduct();
                         break;
+
                     case 3:
                         viewAllProducts();
                         break;
+
                     case 4:
                         showDetails();
                         break;
+
                     case 5:
                         processSale();
                         break;
+
                     case 0:
                         running = false;
                         break;
-                    default:
-                        System.out.println("Invalid choice");
                 }
 
+            } catch (InvalidInputException e) {
+                System.out.println(e.getMessage());
             } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
+                System.out.println("Input error. Please enter a number.");
                 sc.nextLine();
             }
         }
+
         sc.close();
     }
 
@@ -141,7 +152,6 @@ public class StoreMenu implements Menu {
 
     private void showDetails() {
         for (Product p : inventory) {
-            // POLYMORPHISM
             System.out.println(p.getName() + " → " + p.getDetails());
         }
     }

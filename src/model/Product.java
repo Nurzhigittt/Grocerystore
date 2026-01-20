@@ -14,7 +14,7 @@ public abstract class Product {
         setStockQuantity(stockQuantity);
     }
 
-    public abstract String getDetails(); // ← abstract method (ВАЖНО)
+    public abstract String getDetails();
 
     public int getProductId() {
         return productId;
