@@ -4,8 +4,7 @@ public class NonFoodProduct extends Product {
 
     private String category;
 
-    public NonFoodProduct(int productId, String name, double price,
-                          int stockQuantity, String category) {
+    public NonFoodProduct(int productId, String name, double price, int stockQuantity, String category) {
         super(productId, name, price, stockQuantity);
         setCategory(category);
     }

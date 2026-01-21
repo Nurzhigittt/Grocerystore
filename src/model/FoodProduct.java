@@ -4,8 +4,7 @@ public class FoodProduct extends Product {
 
     private String expirationDate;
 
-    public FoodProduct(int productId, String name, double price,
-                       int stockQuantity, String expirationDate) {
+    public FoodProduct(int productId, String name, double price, int stockQuantity, String expirationDate) {
         super(productId, name, price, stockQuantity);
         setExpirationDate(expirationDate);
     }
