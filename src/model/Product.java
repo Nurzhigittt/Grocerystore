@@ -1,6 +1,6 @@
 package model;
 
-public abstract class Product {
+public abstract class Product implements Discountable {
 
     protected int productId;
     protected String name;
@@ -73,4 +73,12 @@ public abstract class Product {
                 " | Price: " + price +
                 " | Stock: " + stockQuantity;
     }
+    @Override
+    public void applyDiscount(double percentage) {
+        if (percentage < 0 || percentage > 100) {
+            throw new IllegalArgumentException("Discount must be between 0 and 100%");
+        }
+        this.price -= this.price * (percentage / 100.0);
+    }
 }
+

@@ -28,6 +28,7 @@ public class StoreMenu implements Menu {
         3. View All Products
         4. Show Product Details
         5. Process Sale
+        6. Add Discount
         0. Exit
         ==============================
         """);
@@ -44,7 +45,7 @@ public class StoreMenu implements Menu {
                 int choice = sc.nextInt();
                 sc.nextLine();
 
-                if (choice < 0 || choice > 5) {
+                if (choice < 0 || choice > 6) {
                     throw new InvalidInputException("Invalid menu choice");
                 }
 
@@ -67,6 +68,10 @@ public class StoreMenu implements Menu {
 
                     case 5:
                         processSale();
+                        break;
+
+                    case 6:
+                        applyDiscountToProduct();
                         break;
 
                     case 0:
@@ -176,6 +181,26 @@ public class StoreMenu implements Menu {
 
         } catch (IllegalArgumentException e) {
             System.out.println("Sale error: " + e.getMessage());
+        }
+    }
+    private void applyDiscountToProduct() {
+        try {
+            System.out.print("Enter Product ID to discount: ");
+            int id = Integer.parseInt(sc.nextLine());
+
+            System.out.print("Enter discount %: ");
+            double percent = Double.parseDouble(sc.nextLine());
+
+            for (Product p : inventory) {
+                if (p.getProductId() == id) {
+                    p.applyDiscount(percent); // Вызов метода интерфейса
+                    System.out.println("New price for " + p.getName() + ": " + p.getPrice());
+                    return;
+                }
+            }
+            System.out.println("Product not found.");
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
         }
     }
 }
