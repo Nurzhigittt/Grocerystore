@@ -193,7 +193,7 @@ public class StoreMenu implements Menu {
 
             for (Product p : inventory) {
                 if (p.getProductId() == id) {
-                    p.applyDiscount(percent); // Вызов метода интерфейса
+                    p.applyDiscount(percent);
                     System.out.println("New price for " + p.getName() + ": " + p.getPrice());
                     return;
                 }
