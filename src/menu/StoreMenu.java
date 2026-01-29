@@ -4,6 +4,8 @@ import exception.InvalidInputException;
 import model.*;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.sql.Connection;
+import java.sql.DriverManager;
 
 public class StoreMenu implements Menu {
 
