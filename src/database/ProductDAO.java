@@ -26,7 +26,7 @@ public class ProductDAO {
 
             if (product instanceof FoodProduct fp) {
                 ps.setString(4, "FOOD");
-                ps.setString(5, fp.getExpirationDate());
+                ps.setDate(5, Date.valueOf(fp.getExpirationDate()));
                 ps.setNull(6, Types.VARCHAR);
             } else if (product instanceof NonFoodProduct nfp) {
                 ps.setString(4, "NON_FOOD");
