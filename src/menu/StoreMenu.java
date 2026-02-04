@@ -211,13 +211,7 @@ public class StoreMenu implements Menu {
         products.forEach(System.out::println);
     }
 
-    private void searchByMinPrice() {
-        System.out.print("Min price: ");
-        double min = Double.parseDouble(sc.nextLine());
 
-        List<Product> products = productDAO.searchByMinPrice(min);
-        products.forEach(System.out::println);
-    }
     private void applyDiscount() {
         try {
             System.out.print("Enter Product ID: ");

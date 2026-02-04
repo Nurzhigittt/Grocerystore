@@ -21,7 +21,7 @@ public abstract class Product implements Discountable {
     }
 
     public void setProductId(int productId) {
-        if (productId <= 0)
+        if (productId < 0)
             throw new IllegalArgumentException("Product ID must be positive");
         this.productId = productId;
     }

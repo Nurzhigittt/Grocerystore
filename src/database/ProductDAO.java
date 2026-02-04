@@ -26,7 +26,7 @@ public class ProductDAO {
 
             if (product instanceof FoodProduct fp) {
                 ps.setString(4, "FOOD");
-                ps.setDate(5, Date.valueOf(fp.getExpirationDate()));
+                ps.setString(5, fp.getExpirationDate());
                 ps.setNull(6, Types.VARCHAR);
             } else if (product instanceof NonFoodProduct nfp) {
                 ps.setString(4, "NON_FOOD");
@@ -36,9 +36,10 @@ public class ProductDAO {
 
             ps.executeUpdate();
             ps.close();
-            System.out.println("Product added successfully!");
+            System.out.println(" Product added successfully!");
 
         } catch (SQLException e) {
+            System.err.println(" SQL error: " + e.getMessage());
             e.printStackTrace();
         } finally {
             DatabaseConnection.closeConnection(connection);
@@ -103,7 +104,32 @@ public class ProductDAO {
             WHERE product_id = ? AND product_type = 'FOOD'
         """;
 
-        return executeUpdate(product, sql, product.getExpirationDate(), null);
+        Connection connection = DatabaseConnection.getConnection();
+        if (connection == null) return false;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, product.getName());
+            ps.setDouble(2, product.getPrice());
+            ps.setInt(3, product.getStockQuantity());
+            ps.setString(4, product.getExpirationDate());
+            ps.setInt(5, product.getProductId());
+
+            int rows = ps.executeUpdate();
+            ps.close();
+
+            if (rows > 0) {
+                System.out.println(" Product updated successfully!");
+                return true;
+            }
+
+        } catch (SQLException e) {
+            System.err.println(" Update failed!");
+            e.printStackTrace();
+        } finally {
+            DatabaseConnection.closeConnection(connection);
+        }
+        return false;
     }
 
     public boolean updateNonFoodProduct(NonFoodProduct product) {
@@ -113,10 +139,6 @@ public class ProductDAO {
             WHERE product_id = ? AND product_type = 'NON_FOOD'
         """;
 
-        return executeUpdate(product, sql, null, product.getCategory());
-    }
-
-    private boolean executeUpdate(Product product, String sql, String expiration, String category) {
         Connection connection = DatabaseConnection.getConnection();
         if (connection == null) return false;
 
@@ -125,21 +147,19 @@ public class ProductDAO {
             ps.setString(1, product.getName());
             ps.setDouble(2, product.getPrice());
             ps.setInt(3, product.getStockQuantity());
-
-            if (expiration != null) ps.setString(4, expiration);
-            else ps.setString(4, category);
-
+            ps.setString(4, product.getCategory());
             ps.setInt(5, product.getProductId());
 
             int rows = ps.executeUpdate();
             ps.close();
 
             if (rows > 0) {
-                System.out.println("Product updated successfully!");
+                System.out.println(" Product updated successfully!");
                 return true;
             }
 
         } catch (SQLException e) {
+            System.err.println(" Update failed!");
             e.printStackTrace();
         } finally {
             DatabaseConnection.closeConnection(connection);
@@ -161,11 +181,14 @@ public class ProductDAO {
             ps.close();
 
             if (rows > 0) {
-                System.out.println("Product deleted.");
+                System.out.println(" Product deleted (ID: " + productId + ")");
                 return true;
+            } else {
+                System.out.println(" No product found with ID: " + productId);
             }
 
         } catch (SQLException e) {
+            System.err.println(" Delete failed!");
             e.printStackTrace();
         } finally {
             DatabaseConnection.closeConnection(connection);
@@ -188,11 +211,12 @@ public class ProductDAO {
             ps.close();
 
             if (rows > 0) {
-                System.out.println("Discount applied!");
+                System.out.println(" Discount applied!");
                 return true;
             }
 
         } catch (SQLException e) {
+            System.err.println(" Discount failed!");
             e.printStackTrace();
         } finally {
             DatabaseConnection.closeConnection(connection);
@@ -219,7 +243,10 @@ public class ProductDAO {
             rs.close();
             ps.close();
 
+            System.out.println(" Found " + result.size() + " product(s)");
+
         } catch (SQLException e) {
+            System.err.println(" Search failed!");
             e.printStackTrace();
         } finally {
             DatabaseConnection.closeConnection(connection);
@@ -247,34 +274,10 @@ public class ProductDAO {
             rs.close();
             ps.close();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
-        }
-        return result;
-    }
-
-    public List<Product> searchByMinPrice(double min) {
-        String sql = "SELECT * FROM product WHERE price >= ? ORDER BY price DESC";
-        List<Product> result = new ArrayList<>();
-
-        Connection connection = DatabaseConnection.getConnection();
-        if (connection == null) return result;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setDouble(1, min);
-
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                result.add(extractProduct(rs));
-            }
-
-            rs.close();
-            ps.close();
+            System.out.println(" Found " + result.size() + " product(s)");
 
         } catch (SQLException e) {
+            System.err.println(" Search failed!");
             e.printStackTrace();
         } finally {
             DatabaseConnection.closeConnection(connection);
@@ -295,9 +298,9 @@ public class ProductDAO {
             return new NonFoodProduct(id, name, price, stock, rs.getString("category"));
         }
     }
-    public List<Product> getProductsByType(String type){
-        List<Product> products = new ArrayList<>();
 
+    public List<Product> getProductsByType(String type) {
+        List<Product> products = new ArrayList<>();
         String sql = "SELECT * FROM product WHERE product_type = ? ORDER BY product_id";
 
         Connection connection = DatabaseConnection.getConnection();
@@ -322,11 +325,10 @@ public class ProductDAO {
         }
 
         return products;
-
     }
-    public List<Product> getAllProductsList(){
-        List<Product> products = new ArrayList<>();
 
+    public List<Product> getAllProductsList() {
+        List<Product> products = new ArrayList<>();
         String sql = "SELECT * FROM product ORDER BY product_id";
 
         Connection connection = DatabaseConnection.getConnection();
