@@ -247,7 +247,7 @@ public class StoreMenu implements Menu {
 
     }
     private void polymorphismDemo() {
-        System.out.println("Polymorphism demo: getDetails() is called at runtime");
+        System.out.println("Polymorphism demo:");
         productDAO.getAllProductsList().forEach(p ->
                 System.out.println(p.getName() + " -> " + p.getDetails())
         );
