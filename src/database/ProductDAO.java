@@ -8,232 +8,112 @@ import java.util.List;
 
 public class ProductDAO {
 
-    public void insertProduct(Product product) {
+    public boolean insertProduct(Product product) {
         String sql = """
             INSERT INTO product (name, price, stock_quantity, product_type, expiration_date, category)
             VALUES (?, ?, ?, ?, ?, ?)
         """;
 
-        Connection connection = DatabaseConnection.getConnection();
-        if (connection == null) return;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-
-            ps.setString(1, product.getName());
-            ps.setDouble(2, product.getPrice());
-            ps.setInt(3, product.getStockQuantity());
-
-            if (product instanceof FoodProduct fp) {
-                ps.setString(4, "FOOD");
-                ps.setString(5, fp.getExpirationDate());
-                ps.setNull(6, Types.VARCHAR);
-            } else if (product instanceof NonFoodProduct nfp) {
-                ps.setString(4, "NON_FOOD");
-                ps.setNull(5, Types.VARCHAR);
-                ps.setString(6, nfp.getCategory());
-            }
-
-            ps.executeUpdate();
-            ps.close();
-            System.out.println(" Product added successfully!");
-
-        } catch (SQLException e) {
-            System.err.println(" SQL error: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
+        if (product instanceof FoodProduct fp) {
+            return runUpdate(sql,
+                    fp.getName(), fp.getPrice(), fp.getStockQuantity(),
+                    "FOOD", fp.getExpirationDate(), null
+            ) > 0;
+        } else if (product instanceof NonFoodProduct nfp) {
+            return runUpdate(sql,
+                    nfp.getName(), nfp.getPrice(), nfp.getStockQuantity(),
+                    "NON_FOOD", null, nfp.getCategory()
+            ) > 0;
         }
+        return false;
     }
 
     public void getAllProduct() {
-        String sql = "SELECT * FROM product ORDER BY product_id";
+        getAllProductsList().forEach(System.out::println);
+    }
 
-        Connection connection = DatabaseConnection.getConnection();
-        if (connection == null) return;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Product product = extractProduct(rs);
-                System.out.println(product);
-            }
-
-            rs.close();
-            ps.close();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
-        }
+    public List<Product> getAllProductsList() {
+        return runSelect("SELECT * FROM product ORDER BY product_id ");
     }
 
     public Product getProductById(int id) {
-        String sql = "SELECT * FROM product WHERE product_id = ?";
-
-        Connection connection = DatabaseConnection.getConnection();
-        if (connection == null) return null;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, id);
-
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                Product product = extractProduct(rs);
-                rs.close();
-                ps.close();
-                return product;
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
-        }
-        return null;
+        List<Product> list = runSelect(" SELECT * FROM product WHERE product_id = ? ", id);
+        return list.isEmpty() ? null : list.getFirst();
     }
 
-    public boolean updateFoodProduct(FoodProduct product) {
+    public List<Product> getProductsByType(String type) {
+        return runSelect("SELECT * FROM product WHERE product_type = ? ORDER BY product_id", type);
+    }
+
+    public boolean updateFoodProduct(FoodProduct p) {
         String sql = """
             UPDATE product
             SET name = ?, price = ?, stock_quantity = ?, expiration_date = ?
             WHERE product_id = ? AND product_type = 'FOOD'
         """;
-
-        Connection connection = DatabaseConnection.getConnection();
-        if (connection == null) return false;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, product.getName());
-            ps.setDouble(2, product.getPrice());
-            ps.setInt(3, product.getStockQuantity());
-            ps.setString(4, product.getExpirationDate());
-            ps.setInt(5, product.getProductId());
-
-            int rows = ps.executeUpdate();
-            ps.close();
-
-            if (rows > 0) {
-                System.out.println(" Product updated successfully!");
-                return true;
-            }
-
-        } catch (SQLException e) {
-            System.err.println(" Update failed!");
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
-        }
-        return false;
+        return runUpdate(sql,
+                p.getName(), p.getPrice(), p.getStockQuantity(), p.getExpirationDate(),
+                p.getProductId()
+        ) > 0;
     }
 
-    public boolean updateNonFoodProduct(NonFoodProduct product) {
+    public boolean updateNonFoodProduct(NonFoodProduct p) {
         String sql = """
             UPDATE product
             SET name = ?, price = ?, stock_quantity = ?, category = ?
             WHERE product_id = ? AND product_type = 'NON_FOOD'
         """;
-
-        Connection connection = DatabaseConnection.getConnection();
-        if (connection == null) return false;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, product.getName());
-            ps.setDouble(2, product.getPrice());
-            ps.setInt(3, product.getStockQuantity());
-            ps.setString(4, product.getCategory());
-            ps.setInt(5, product.getProductId());
-
-            int rows = ps.executeUpdate();
-            ps.close();
-
-            if (rows > 0) {
-                System.out.println(" Product updated successfully!");
-                return true;
-            }
-
-        } catch (SQLException e) {
-            System.err.println(" Update failed!");
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
-        }
-        return false;
+        return runUpdate(sql,
+                p.getName(), p.getPrice(), p.getStockQuantity(), p.getCategory(),
+                p.getProductId()
+        ) > 0;
     }
 
+
     public boolean deleteProduct(int productId) {
-        String sql = "DELETE FROM product WHERE product_id = ?";
-
-        Connection connection = DatabaseConnection.getConnection();
-        if (connection == null) return false;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, productId);
-
-            int rows = ps.executeUpdate();
-            ps.close();
-
-            if (rows > 0) {
-                System.out.println(" Product deleted (ID: " + productId + ")");
-                return true;
-            } else {
-                System.out.println(" No product found with ID: " + productId);
-            }
-
-        } catch (SQLException e) {
-            System.err.println(" Delete failed!");
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
-        }
-        return false;
+        return runUpdate("DELETE FROM product WHERE product_id = ?", productId) > 0;
     }
 
     public boolean applyDiscount(int productId, double percent) {
         String sql = "UPDATE product SET price = price - (price * ? / 100) WHERE product_id = ?";
-
-        Connection connection = DatabaseConnection.getConnection();
-        if (connection == null) return false;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setDouble(1, percent);
-            ps.setInt(2, productId);
-
-            int rows = ps.executeUpdate();
-            ps.close();
-
-            if (rows > 0) {
-                System.out.println(" Discount applied!");
-                return true;
-            }
-
-        } catch (SQLException e) {
-            System.err.println(" Discount failed!");
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
-        }
-        return false;
+        return runUpdate(sql, percent, productId) > 0;
     }
 
     public List<Product> searchByName(String name) {
-        String sql = "SELECT * FROM product WHERE name ILIKE ? ORDER BY name";
-        List<Product> result = new ArrayList<>();
+        return runSelect("SELECT * FROM product WHERE name ILIKE ? ORDER BY name", "%" + name + "%");
+    }
 
+    public List<Product> searchByPriceRange(double min, double max) {
+        return runSelect("SELECT * FROM product WHERE price BETWEEN ? AND ? ORDER BY price DESC ", min, max);
+    }
+
+
+    private int runUpdate(String sql, Object... params) {
+        Connection connection = DatabaseConnection.getConnection();
+        if (connection == null) return 0;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            setParams(ps, params);
+            int rows = ps.executeUpdate();
+            ps.close();
+            return rows;
+        } catch (SQLException e) {
+            System.err.println("SQL error: " + e.getMessage());
+            return 0;
+        } finally {
+            DatabaseConnection.closeConnection(connection);
+        }
+    }
+
+    private List<Product> runSelect(String sql, Object... params) {
+        List<Product> result = new ArrayList<>();
         Connection connection = DatabaseConnection.getConnection();
         if (connection == null) return result;
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, "%" + name + "%");
+            setParams(ps, params);
 
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -242,47 +122,24 @@ public class ProductDAO {
 
             rs.close();
             ps.close();
-
-            System.out.println(" Found " + result.size() + " product(s)");
-
         } catch (SQLException e) {
-            System.err.println(" Search failed!");
-            e.printStackTrace();
+            System.err.println("SQL error: " + e.getMessage());
         } finally {
             DatabaseConnection.closeConnection(connection);
         }
         return result;
     }
 
-    public List<Product> searchByPriceRange(double min, double max) {
-        String sql = "SELECT * FROM product WHERE price BETWEEN ? AND ? ORDER BY price DESC";
-        List<Product> result = new ArrayList<>();
+    private void setParams(PreparedStatement ps, Object... params) throws SQLException {
+        for (int i = 0; i < params.length; i++) {
+            Object v = params[i];
 
-        Connection connection = DatabaseConnection.getConnection();
-        if (connection == null) return result;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setDouble(1, min);
-            ps.setDouble(2, max);
-
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                result.add(extractProduct(rs));
+            if (v == null) {
+                ps.setNull(i + 1, Types.VARCHAR);
+            } else {
+                ps.setObject(i + 1, v);
             }
-
-            rs.close();
-            ps.close();
-
-            System.out.println(" Found " + result.size() + " product(s)");
-
-        } catch (SQLException e) {
-            System.err.println(" Search failed!");
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
         }
-        return result;
     }
 
     private Product extractProduct(ResultSet rs) throws SQLException {
@@ -297,60 +154,5 @@ public class ProductDAO {
         } else {
             return new NonFoodProduct(id, name, price, stock, rs.getString("category"));
         }
-    }
-
-    public List<Product> getProductsByType(String type) {
-        List<Product> products = new ArrayList<>();
-        String sql = "SELECT * FROM product WHERE product_type = ? ORDER BY product_id";
-
-        Connection connection = DatabaseConnection.getConnection();
-        if (connection == null) return products;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, type);
-
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                products.add(extractProduct(rs));
-            }
-
-            rs.close();
-            ps.close();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
-        }
-
-        return products;
-    }
-
-    public List<Product> getAllProductsList() {
-        List<Product> products = new ArrayList<>();
-        String sql = "SELECT * FROM product ORDER BY product_id";
-
-        Connection connection = DatabaseConnection.getConnection();
-        if (connection == null) return products;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                products.add(extractProduct(rs));
-            }
-
-            rs.close();
-            ps.close();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
-        }
-
-        return products;
     }
 }
