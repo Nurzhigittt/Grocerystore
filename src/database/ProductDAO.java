@@ -83,6 +83,13 @@ public class ProductDAO {
         return runSelect("SELECT * FROM product WHERE name ILIKE ? ORDER BY name", "%" + name + "%");
     }
 
+    public List<Product> searchByMinPrice(double min) {
+        return runSelect(
+                "SELECT * FROM product WHERE price >= ? ORDER BY price DESC",
+                min
+        );
+    }
+
     public List<Product> searchByPriceRange(double min, double max) {
         return runSelect("SELECT * FROM product WHERE price BETWEEN ? AND ? ORDER BY price DESC ", min, max);
     }

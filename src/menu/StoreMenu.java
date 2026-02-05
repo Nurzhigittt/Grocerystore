@@ -20,7 +20,7 @@ public class StoreMenu implements Menu {
         1. Add Food Product
         2. Add Non-Food Product
         3. View All Products
-        4. View Food Only
+        4. High Priced Products
         5. View Non-Food Only
         6. Update Product
         7. Delete Product
@@ -46,7 +46,7 @@ public class StoreMenu implements Menu {
                     case 1 -> addFoodProduct();
                     case 2 -> addNonFoodProduct();
                     case 3 -> viewAllProducts();
-                    case 4 -> viewFoodOnly();
+                    case 4 -> highPricedProducts();
                     case 5 -> viewNonFoodOnly();
                     case 6 -> updateProduct();
                     case 7 -> deleteProduct();
@@ -239,9 +239,24 @@ public class StoreMenu implements Menu {
             System.out.println("Failed to apply discount.");
         }
     }
-    private void viewFoodOnly(){
-        productDAO.getProductsByType("FOOD").forEach(System.out::println);
+    private void highPricedProducts() {
+        try {
+            System.out.print("Enter minimum price: ");
+            double min = Double.parseDouble(sc.nextLine());
+
+            List<Product> products = productDAO.searchByMinPrice(min);
+
+            if (products.isEmpty()) {
+                System.out.println("No products found.");
+            } else {
+                products.forEach(System.out::println);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Invalid input.");
+        }
     }
+
     private void viewNonFoodOnly(){
         productDAO.getProductsByType("NON_FOOD").forEach(System.out::println);
 
